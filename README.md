@@ -1,4 +1,4 @@
-# linuxulator-steam-utils-standalone
+# linuxulator-steam-utils-anydistro
 
 This is an **experimental standalone version of [linuxulator-steam-utils (LSU)](https://github.com/shkhln/linuxulator-steam-utils)**. LSU provides workarounds for running the Linux Steam client on FreeBSD through Linuxulator. This fork is intended for a separately managed Linux root instead of the FreeBSD `linux-rl9-*` packages.
 
@@ -7,7 +7,7 @@ Standalone means that the repository is also a local FreeBSD port and does not d
 ## Requirements
 
 - FreeBSD amd64 with 32-bit and 64-bit Linux compatibility enabled.
-- A glibc-based Linux root at `/compat/linux`. Some paths are hard-coded, so other locations are not fully supported. It needs bash, 32-bit and 64-bit libraries, graphics and audio support, and a 32-bit loader. The runtime currently expects an RH-style multilib layout: 64-bit libraries in `usr/lib64` and 32-bit libraries in `usr/lib`. Void's usual `usr/lib` for 64-bit libraries does not meet this requirement without a compatible layout.
+- A glibc-based Linux root at `/compat/linux`. Some paths are hard-coded, so other locations are not fully supported. It needs bash, 32-bit and 64-bit libraries, graphics and audio support, and a 32-bit loader. The runtime supports 64-bit libraries in `usr/lib64` and detects 32-bit libraries in `usr/lib32` or `usr/lib`. Void support remains untested end to end.
 - A Linux compiler at `/compat/linux/bin/cc`, with headers and working `-m32` and `-m64` support. The port does not provision the root.
 - Linux pseudo-filesystems mounted under the Linux root, writable `dev/shm`, `/etc/machine-id`, and `compat.linux.use_real_ifnames=1`.
 - `nullfs` loaded, `security.bsd.unprivileged_chroot=1`, and `vfs.usermount=1`. These settings relax host security. Use a dedicated unprivileged, non-wheel account for Steam.

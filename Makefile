@@ -1,4 +1,4 @@
-PORTNAME=	linuxulator-steam-utils-standalone
+PORTNAME=	linuxulator-steam-utils-anydistro
 DISTVERSION=	0.1
 CATEGORIES=	games
 
