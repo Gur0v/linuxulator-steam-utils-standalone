@@ -139,6 +139,12 @@ install:
 	install -m 0644 tools/$(t)/toolmanifest.vdf      $(DESTDIR)$(PREFIX)/$(PROJECT)/tools/$(t)
 	install tools/$(t)/run.sh tools/$(t)/*.rb $(DESTDIR)$(PREFIX)/$(PROJECT)/tools/$(t)
 .endfor
+	# Native Ruby is required even when Linuxulator resolves /usr/bin/env.
+	for f in $(DESTDIR)$(PREFIX)/$(PROJECT)/bin/steam $(DESTDIR)$(PREFIX)/$(PROJECT)/bin/lsu-* $(DESTDIR)$(PREFIX)/$(PROJECT)/lxbin/*.rb $(DESTDIR)$(PREFIX)/$(PROJECT)/tools/*/*.rb; do \
+	  if [ "$$(/usr/bin/head -n 1 "$$f")" = '#!/usr/bin/env ruby' ]; then \
+	    /usr/bin/sed -i '' '1s|^#!/usr/bin/env ruby$$|#!$(PREFIX)/bin/ruby|' "$$f"; \
+	  fi; \
+	done
 
 deinstall:
 .if exists($(DESTDIR)$(PREFIX)/$(PROJECT))

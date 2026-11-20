@@ -172,7 +172,7 @@ if try_mount('tmpfs', 'tmpfs', mroot, 'nocover')
 
           files_to_copy += Dir[
             # other dependencies
-            File.join(source_dir, 'lib{edit,ffi,LLVM*}.so*'),
+            File.join(source_dir, 'lib{edit,ffi,LLVM*,z3}.so*'),
             # Wayland
             File.join(source_dir, 'libwayland-{client,cursor,egl,server}.so*'),
             # GLVND
@@ -188,7 +188,12 @@ if try_mount('tmpfs', 'tmpfs', mroot, 'nocover')
           for source in files_to_copy
             target = File.join(dest_dir, File.basename(source))
             #~ pwarn "#{source} -> #{target}"
-            if File.symlink?(source)
+            if File.symlink?(source) && File.basename(source).start_with?('libLLVM')
+              # Void stores LLVM in a versioned subdirectory; copying only the
+              # symlink leaves Mesa's dependency dangling inside the runtime.
+              FileUtils.rm(target) if File.symlink?(target)
+              FileUtils.cp(File.realpath(source), target)
+            elsif File.symlink?(source)
               FileUtils.ln_s(File.readlink(source), target, force: true)
             else
               FileUtils.rm(target) if File.symlink?(target)

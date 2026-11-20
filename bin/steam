@@ -153,6 +153,12 @@ end
 
 steam_runtime_bin_path = get_linux_cmd_output('"$0" --print-bin-path',                    File.join(STEAM_RUNTIME_ROOT_PATH, 'setup.sh'))
 steam_runtime_lib_path = get_linux_cmd_output('"$0" --print-steam-runtime-library-paths', File.join(STEAM_RUNTIME_ROOT_PATH, 'run.sh'))
+# Steam's runtime can report host-visible system directories such as
+# /usr/local/lib. Linuxulator may resolve those to FreeBSD libraries when
+# they are absent from the Linux root. Use explicit Linux-root paths instead.
+steam_runtime_lib_path = steam_runtime_lib_path.split(':').reject do |path|
+  path.empty? || ['/usr/local/lib', '/usr/lib', '/usr/lib32', '/usr/lib64', '/lib', '/lib32', '/lib64'].include?(path)
+end.unshift(linux_lib32_dir(EMUL_PATH), File.join(EMUL_PATH, 'usr/lib64')).join(':')
 
 bin_path = [
   File.expand_path('../lxbin', __dir__),

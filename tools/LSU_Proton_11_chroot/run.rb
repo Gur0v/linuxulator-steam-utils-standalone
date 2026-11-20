@@ -54,7 +54,7 @@ def run(args)
 end
 
 case ARGV[0]
-  when 'waitforexitandrun'
+  when 'run', 'waitforexitandrun'
     run(ARGV[0..-1])
   else
     perr "Unknown command #{ARGV[0]}"
