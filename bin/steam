@@ -7,9 +7,7 @@ require_relative '.dpkgs'
 require_relative '.utils'
 
 EMUL_PATH         = File.realdirpath(`sysctl -qn compat.linux.emul_path`).chomp
-EXPECTED_DISTROS  = ['centos', 'fedora', 'rocky']
 MIN_GLIBC_VERSION = '2.34'
-MIN_ROCKY_RELEASE = 9
 
 def check_requirements
 
@@ -50,43 +48,15 @@ def check_requirements
   # without nullfs.ko mount fails with an unhelpful error message: https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=274600#c5
   reqs << [:nullfs, 'nullfs.ko must be loaded'] if !system('kldstat -q -m nullfs')
 
-  # we expect EMUL_PATH to point to the RH-style directory structure
-  os = {}
-  begin
-    File.read("#{EMUL_PATH}/etc/os-release").each_line(chomp: true) do |line|
-      k, v = line.split('=')
-      case v
-        when /^[\w\d]+$/
-          os[k] = v
-        when /^".+"$/
-          os[k] = v.undump
-      end
-    end
-  rescue Errno::ENOENT
-    os = nil
+  # The graphics integration expects an RH-style multilib layout even when
+  # the Linux root comes from another distribution, such as Void.
+  libc = File.join(EMUL_PATH, 'usr/lib64/libc.so.6')
+  symbols = File.file?(libc) ? IO.popen(['readelf', '-sW', libc], &:read) : ''
+  unless symbols.include?("GLIBC_#{MIN_GLIBC_VERSION}")
+    reqs << [:base, "Linux base with glibc >= #{MIN_GLIBC_VERSION} at #{EMUL_PATH}"]
   end
-
-  if os && (EXPECTED_DISTROS.include?(os['ID']) || EXPECTED_DISTROS.intersect?(os['ID_LIKE'].split(' ')))
-    if os['ID'] == 'rocky'
-      version    = os['VERSION_ID']
-      version_ok = if version =~ /^(\d+)(:?\.\d+)?$/
-        $1.to_i >= MIN_ROCKY_RELEASE
-      else
-        false
-      end
-      if !version_ok
-        reqs << [:base, "binaries from Rocky Linux #{MIN_ROCKY_RELEASE} at #{EMUL_PATH}, got #{version}"]
-      end
-    else
-      # let's check at least the glibc version
-      Dir.chdir(File.join(EMUL_PATH, 'lib64')) do
-        if `readelf -s libc.so.6 | grep GLIBC_#{MIN_GLIBC_VERSION}`.chomp == ''
-          reqs << [:base, "Linux base with glibc >= #{MIN_GLIBC_VERSION} at #{EMUL_PATH}"]
-        end
-      end
-    end
-  else
-    reqs << [:base, "binaries from Rocky Linux or compatible distro at #{EMUL_PATH}"]
+  unless File.exist?(File.join(EMUL_PATH, 'usr/lib/ld-linux.so.2'))
+    reqs << [:base, "32-bit Linux loader at #{EMUL_PATH}/usr/lib/ld-linux.so.2 (RH-style multilib layout)"]
   end
 
   if system('sysctl -q dev.drm > /dev/null') && !`id -Gn`.split(' ').include?('video')
