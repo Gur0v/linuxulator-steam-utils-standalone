@@ -4,4 +4,5 @@
 /lib32
 /lib64
 /lxbin/lsu-linux-to-freebsd-env
+/work
 /todo.txt
