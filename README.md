@@ -1,33 +1,37 @@
 # linuxulator-steam-utils-anydistro
 
-This is an **experimental standalone version of [linuxulator-steam-utils (LSU)](https://github.com/shkhln/linuxulator-steam-utils)**. LSU provides workarounds for running the Linux Steam client on FreeBSD through Linuxulator. This fork is intended for a separately managed Linux root instead of the FreeBSD `linux-rl9-*` packages.
-
-Standalone means that the repository is also a local FreeBSD port and does not depend on those packages. It does not bundle Steam, a Linux root, or the Linux libraries and compiler needed to build and run it. Compatibility with custom roots is experimental and has not been established for Void Linux.
+An experimental standalone version of [linuxulator-steam-utils](https://github.com/shkhln/linuxulator-steam-utils) (LSU), intended to run Linux Steam on FreeBSD with a separately managed Linux root instead of the FreeBSD linux-rl9 packages. This repository is also a local FreeBSD port. It does not bundle Steam or a Linux root, and custom distributions including Void have not been tested end to end.
 
 ## Requirements
 
-- FreeBSD amd64 with 32-bit and 64-bit Linux compatibility enabled.
-- A glibc-based Linux root at `/compat/linux`. Some paths are hard-coded, so other locations are not fully supported. It needs bash, 32-bit and 64-bit libraries, graphics and audio support, and a 32-bit loader. The runtime supports 64-bit libraries in `usr/lib64` and detects 32-bit libraries in `usr/lib32` or `usr/lib`. Void support remains untested end to end.
-- A Linux compiler at `/compat/linux/bin/cc`, with headers and working `-m32` and `-m64` support. The port does not provision the root.
-- Linux pseudo-filesystems mounted under the Linux root, writable `dev/shm`, `/etc/machine-id`, and `compat.linux.use_real_ifnames=1`.
-- `nullfs` loaded, `security.bsd.unprivileged_chroot=1`, and `vfs.usermount=1`. These settings relax host security. Use a dedicated unprivileged, non-wheel account for Steam.
+FreeBSD amd64 with 32-bit and 64-bit Linux compatibility enabled, and a glibc-based Linux root at /compat/linux. The root needs bash, 32-bit and 64-bit libraries, graphics and audio support, and a 32-bit loader. LSU detects 32-bit libraries in usr/lib32 or usr/lib and expects 64-bit libraries in usr/lib64. Other Linux root locations are not fully supported.
 
-For AMD graphics, the Linux root also needs compatible Mesa drivers and Vulkan ICDs for the required architectures. A render device alone does not establish working graphics support.
+Building also requires a Linux compiler at /compat/linux/bin/cc with development headers and working -m32 and -m64 support. On Void, gcc-multilib, glibc-devel-32bit and libgcc-devel-32bit provide the required toolchain components. The port does not install Linux dependencies.
 
-## Build and install
+Mount the Linux pseudo-filesystems, ensure the Linux root's dev/shm is writable and /etc/machine-id exists, and set these sysctls to 1:
 
-This checkout is the port source. It builds from the local files rather than fetching a release archive. With a FreeBSD ports tree configured and the Linux root provisioned, run:
+- compat.linux.use_real_ifnames
+- security.bsd.unprivileged_chroot
+- vfs.usermount
+
+Load nullfs as well. Unprivileged chroot and mounts relax host security, so use a dedicated non-wheel user for Steam. AMD graphics also require compatible Mesa drivers and Vulkan ICDs.
+
+## Installation
+
+With a FreeBSD ports tree configured and the Linux root provisioned, build and install from this checkout:
 
 ```sh
-make install
+make build
+sudo make install
 ```
 
-Installation requires appropriate privileges. The port installs to `/usr/local/steam-utils` and provides `/usr/local/bin/steam`. Its native dependencies include Ruby, GNU tar, and Zenity. Manage Linux dependencies separately in the Linux root.
+The port installs native dependencies, including Ruby, GNU tar and Zenity, and places LSU in /usr/local/steam-utils. As the dedicated Steam user, run:
 
-To build outside the port framework, run `make -f Makefile.build build`, then install with `make -f Makefile.build install`.
+```sh
+/usr/local/steam-utils/bin/lsu-bootstrap
+steam
+```
 
-As the dedicated Steam user, run `/usr/local/steam-utils/bin/lsu-bootstrap`, then `steam`. Steam downloads and updates its own files. The browser uses an unprivileged chroot and Steam runtime libraries. Optional game compatibility tools are also installed and may require additional Steam runtimes, Proton, or FreeBSD Wine.
+Steam downloads and updates its own files. The browser uses an unprivileged chroot and Steam runtime libraries. The included game compatibility tools may require additional Steam runtimes, Proton or FreeBSD Wine.
 
-## Limitations
-
-Steam's browser sandbox is disabled. Steam's pressure-vessel container runtime does not work. Game and controller support, streaming, VR, and anti-cheat are not guaranteed. Graphics and audio support depend on the Linux root and host configuration.
+Steam's browser sandbox is disabled and pressure-vessel does not work. Game and controller support, streaming, VR and anti-cheat are not guaranteed.
