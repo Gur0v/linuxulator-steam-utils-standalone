@@ -150,7 +150,7 @@ if try_mount('tmpfs', 'tmpfs', mroot, 'nocover')
 
         for source_dir, dest_dir in {
           File.join(EMUL_PATH, 'usr/lib64') => File.join(mroot, 'usr/lib/x86_64-linux-gnu'),
-          File.join(EMUL_PATH, 'usr/lib')   => File.join(mroot, 'usr/lib/i386-linux-gnu')
+          linux_lib32_dir(EMUL_PATH) => File.join(mroot, 'usr/lib/i386-linux-gnu')
         }
           mounts << mount('nullfs', File.join(source_dir, 'dri'), File.join(dest_dir, 'dri'))
           mounts << mount('nullfs', File.join(source_dir, 'gbm'), File.join(dest_dir, 'gbm'))
@@ -314,7 +314,7 @@ if try_mount('tmpfs', 'tmpfs', mroot, 'nocover')
     # Nvidia libs
     for source_dir, dest_dir in {
       File.join(EMUL_PATH, 'usr/lib64') => File.join(mroot, 'usr/lib/x86_64-linux-gnu'),
-      File.join(EMUL_PATH, 'usr/lib')   => File.join(mroot, 'usr/lib/i386-linux-gnu')
+      linux_lib32_dir(EMUL_PATH) => File.join(mroot, 'usr/lib/i386-linux-gnu')
     }
       libs = Dir[File.join(source_dir, 'lib{cuda,nvidia-*,*_nvidia}.so*')]
       if libs.size > 0
@@ -369,7 +369,7 @@ if try_mount('tmpfs', 'tmpfs', mroot, 'nocover')
 
     for source_dir, dest_dir in {
       File.join(EMUL_PATH, 'usr/lib64') => File.join(mroot, 'usr/lib/x86_64-linux-gnu'),
-      File.join(EMUL_PATH, 'usr/lib')   => File.join(mroot, 'usr/lib/i386-linux-gnu')
+      linux_lib32_dir(EMUL_PATH) => File.join(mroot, 'usr/lib/i386-linux-gnu')
     }
       FileUtils.cp(File.join(source_dir, 'libasound.so.2.0.0'), dest_dir)
       FileUtils.ln_s('libasound.so.2.0.0', File.join(dest_dir, 'libasound.so'), force: true)

@@ -9,6 +9,12 @@ STEAM_ROOT_PATH = File.join(File.realpath(ENV['HOME']), '.steam/steam')
 
 LSU_MESA_LIBS   = ENV['LSU_MESA_LIBS'] || 'base' # base, ubuntu, none
 
+# Void uses usr/lib32 for i686 libraries; Rocky uses usr/lib.
+def linux_lib32_dir(root)
+  void_loader = File.join(root, 'usr/lib32/ld-linux.so.2')
+  File.join(root, File.exist?(void_loader) ? 'usr/lib32' : 'usr/lib')
+end
+
 PWARN_PROGRAM_NAME = if ENV['LSU_COOKIE'] # ?
   name = File.basename($PROGRAM_NAME)
   name.start_with?('lsu-') ? name : $PROGRAM_NAME

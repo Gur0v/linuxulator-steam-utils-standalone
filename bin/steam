@@ -48,15 +48,14 @@ def check_requirements
   # without nullfs.ko mount fails with an unhelpful error message: https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=274600#c5
   reqs << [:nullfs, 'nullfs.ko must be loaded'] if !system('kldstat -q -m nullfs')
 
-  # The graphics integration expects an RH-style multilib layout even when
-  # the Linux root comes from another distribution, such as Void.
+  # Accept both Rocky and Void multilib library layouts.
   libc = File.join(EMUL_PATH, 'usr/lib64/libc.so.6')
   symbols = File.file?(libc) ? IO.popen(['readelf', '-sW', libc], &:read) : ''
   unless symbols.include?("GLIBC_#{MIN_GLIBC_VERSION}")
     reqs << [:base, "Linux base with glibc >= #{MIN_GLIBC_VERSION} at #{EMUL_PATH}"]
   end
-  unless File.exist?(File.join(EMUL_PATH, 'usr/lib/ld-linux.so.2'))
-    reqs << [:base, "32-bit Linux loader at #{EMUL_PATH}/usr/lib/ld-linux.so.2 (RH-style multilib layout)"]
+  unless File.exist?(File.join(linux_lib32_dir(EMUL_PATH), 'ld-linux.so.2'))
+    reqs << [:base, "32-bit Linux loader in #{linux_lib32_dir(EMUL_PATH)}"]
   end
 
   if system('sysctl -q dev.drm > /dev/null') && !`id -Gn`.split(' ').include?('video')
@@ -117,7 +116,7 @@ end
 
 if `sysctl -q hw.nvidia.version` =~ /hw.nvidia.version: NVIDIA UNIX x86_64 Kernel Module\s+(\d+\.\d+\.\d+|\d+\.\d+)/
   version = $1
-  libgl32 = File.join(EMUL_PATH, "usr/lib/libGLX_nvidia.so.#{version}")
+  libgl32 = File.join(linux_lib32_dir(EMUL_PATH), "libGLX_nvidia.so.#{version}")
   if !File.exist?(libgl32)
     perr "#{libgl32} doesn't exist. You might want to install (or update) linux-nvidia-libs."
     exit 1
