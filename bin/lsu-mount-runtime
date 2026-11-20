@@ -173,15 +173,15 @@ if try_mount('tmpfs', 'tmpfs', mroot, 'nocover')
           files_to_copy += Dir[
             # other dependencies
             File.join(source_dir, 'lib{edit,ffi,LLVM*}.so*'),
-            # linux-rl9-wayland
+            # Wayland
             File.join(source_dir, 'libwayland-{client,cursor,egl,server}.so*'),
-            # linux-rl9-libglvnd
+            # GLVND
             File.join(source_dir, 'lib{EGL,GL,GLESv1_CM,GLESv2,GLX,GLdispatch,OpenGL}.so*'),
-            # linux-rl9-libdrm
+            # libdrm
             File.join(source_dir, 'lib{drm,drm_{amdgpu,intel,radeon}}.so*'),
-            # linux-rl9-dri
+            # Mesa
             File.join(source_dir, 'lib{EGL_mesa,GLU,GLX_{mesa,system},VkLayer_*,gallium-*,gbm,glapi,glut,vulkan_{intel,lvp,radeon},xatracker}.so*'),
-            # linux-rl9-spirv-tools
+            # SPIR-V tools
             File.join(source_dir, 'libSPIRV-*.so*')
           ]
 
